@@ -24,7 +24,7 @@ import { type ArchiveService, dayLabel, dayPath } from "./service";
 
 /** The mean of a non-empty list of numbers. Given. */
 export function mean(values: number[]): number {
-	return values.reduce((sum, value) => sum + value, 0) / values.length;
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
 //----- getAverage (given: a finished handler to read first) ------//
@@ -44,16 +44,16 @@ export function mean(values: number[]): number {
  * @returns 200 with the average as a number.
  */
 export async function getAverage(_request: HttpRequest, service: ArchiveService): Promise<HttpResponse> {
-	// service.files is the path of every recording file. Mapping readDay over
-	// it starts every read at once and gives an array of promises; Promise.all
-	// waits for all of them and returns their results in the same order, so
-	// `days` is an array of arrays: one list of temperatures per file.
-	const days = await Promise.all(service.files.map((file) => readDay(file)));
+    // service.files is the path of every recording file. Mapping readDay over
+    // it starts every read at once and gives an array of promises; Promise.all
+    // waits for all of them and returns their results in the same order, so
+    // `days` is an array of arrays: one list of temperatures per file.
+    const days = await Promise.all(service.files.map((file) => readDay(file)));
 
-	// flat() joins the per-file lists into one list of every reading, and the
-	// body of the response is the plain number mean() returns. respond() wraps
-	// it as { status: 200, body: <that number> }.
-	return respond(200, mean(days.flat()));
+    // flat() joins the per-file lists into one list of every reading, and the
+    // body of the response is the plain number mean() returns. respond() wraps
+    // it as { status: 200, body: <that number> }.
+    return respond(200, mean(days.flat()));
 }
 
 //----- getDay ------//
@@ -72,7 +72,14 @@ export async function getAverage(_request: HttpRequest, service: ArchiveService)
  * @returns 200 with the day's temperatures, or 404 with an error body when the
  *   archive has no recording for that date.
  */
-
+export async function getDay(request: HttpRequest, service: ArchiveService): Promise<HttpResponse> {
+    const { year, month, day } = request.params;
+    const path = dayPath(service, year, month, day);
+    if (!service.files.includes(path)) {
+        return fail(404, `No recording for ${year}/${month}/${day}`);
+    }
+    return respond(200, await readDay(path));
+}
 
 //----- listDaysBelow ------//
 
@@ -93,35 +100,37 @@ export async function getAverage(_request: HttpRequest, service: ArchiveService)
  * array of labels whose temperature is below N (can be empty).
  */
 export async function listDaysBelow(request: HttpRequest, service: ArchiveService): Promise<HttpResponse> {
-	// For the request GET /archive/days?below=2.5, request.query.below is the
-	// string "2.5". Number() converts it from a string to a number; no checking
-	// because we trust the precondition.
-	const below = Number(request.query.below);
-	const labels: string[] = [];                  // 一张空名单
+    // For the request GET /archive/days?below=2.5, request.query.below is the
+    // string "2.5". Number() converts it from a string to a number; no checking
+    // because we trust the precondition.
+    const below = Number(request.query.below);
+    const labels: string[] = []; // 一张空名单
 
-	for (const file of service.files) {           // 每一个文件（每一天）
-		const temps = await readDay(file);        //   读出这天的温度
-		const average = mean(temps);              //   算这天的平均
-		if (average < below) {                    //   够冷吗？
-			labels.push(dayLabel(service, file)); 
-	}
+    for (const file of service.files) {
+        // 每一个文件（每一天）
+        const temps = await readDay(file); //   读出这天的温度
+        const average = mean(temps); //   算这天的平均
+        if (average < below) {
+            //   够冷吗？
+            labels.push(dayLabel(service, file));
+        }
 
-	return respond(200, labels);  
-	}
-}       
+        return respond(200, labels);
+    }
+}
 
 //----- listMonths (STRETCH) ------//
 
 /** One row of the GET /archive/months answer. */
 export type MonthSummary = {
-	/** The month as "year/month", e.g. "2025/01". */
-	month: string;
-	/** How many days of that month the archive holds. */
-	days: number;
-	/** The mean of every reading in the month, pooled as getAverage pools them. */
-	average: number;
-	/** The label of the day with the lowest daily mean; the earliest on a tie. */
-	coldest: string;
+    /** The month as "year/month", e.g. "2025/01". */
+    month: string;
+    /** How many days of that month the archive holds. */
+    days: number;
+    /** The mean of every reading in the month, pooled as getAverage pools them. */
+    average: number;
+    /** The label of the day with the lowest daily mean; the earliest on a tie. */
+    coldest: string;
 };
 
 /**
@@ -133,11 +142,11 @@ export type MonthSummary = {
  * @returns 200 with a MonthSummary for each month (possibly none).
  */
 export function listMonths(_request: HttpRequest, service: ArchiveService): Promise<HttpResponse> {
-	// TODO (STRETCH): read every file with Promise.all, pair each day's
-	// temperatures with its label, group the days by the first seven characters
-	// of the label ("2025/01"), then summarise each group. Delete the line
-	// below once `service` is used.
+    // TODO (STRETCH): read every file with Promise.all, pair each day's
+    // temperatures with its label, group the days by the first seven characters
+    // of the label ("2025/01"), then summarise each group. Delete the line
+    // below once `service` is used.
 
-	void service; // To make the linter happy. Delete this line once you use `service`
-	return notImplemented("listMonths"); // stub
+    void service; // To make the linter happy. Delete this line once you use `service`
+    return notImplemented("listMonths"); // stub
 }
