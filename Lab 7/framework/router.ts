@@ -1,11 +1,10 @@
-// src/framework/router.ts
+export type HttpMethod = "GET" | "POST" | "PUT" | "DELETE";
 
-/** 一个 HTTP 请求：只保留处理函数需要的部分。 */
 export type HttpRequest = {
-	/** 路径参数，例如模式 "/archive/:year" 匹配 "/archive/2025" 得到 { year: "2025" }。 */
 	params: Record<string, string>;
-	/** 查询参数，例如 "?below=2.5" 得到 { below: "2.5" }，值始终是字符串。 */
 	query: Record<string, string>;
+	/** 请求体；GET 请求没有，为 undefined。 */
+	body?: unknown;
 };
 
 /** 一个 HTTP 响应：状态码加上响应主体。 */
@@ -17,9 +16,8 @@ export type HttpResponse = {
 /** 处理函数：接收请求和服务，返回响应的 Promise。 */
 export type Handler<S> = (request: HttpRequest, service: S) => Promise<HttpResponse>;
 
-/** 一条路由：HTTP 方法、路径模式和对应的处理函数。 */
 export type Route<S> = {
-	method: "GET";
+	method: HttpMethod;
 	pattern: string;
 	handler: Handler<S>;
 };
@@ -84,23 +82,31 @@ function matchPattern(pattern: string, path: string): Record<string, string> | u
 }
 
 /**
- * 把一个 GET 请求分发给第一条匹配的路由。
+ * 把一个请求分发给第一条方法和路径都匹配的路由。
  *
  * @param routes 路由表。
  * @param service 传给处理函数的服务。
- * @param url 请求的路径，可以带查询参数，例如 "/archive/days?below=2.5"。
+ * @param method HTTP 方法，例如 "GET"。
+ * @param url 请求路径，可以带查询串，例如 "/archive/days?below=2.5"。
+ * @param body 请求体；GET 请求传 undefined。
  * @returns 处理函数的响应；没有匹配的路由时返回 404 和 "no route matches"。
  */
-export function dispatchGet<S>(routes: Route<S>[], service: S, url: string): Promise<HttpResponse> {
+export function dispatch<S>(
+	routes: Route<S>[],
+	service: S,
+	method: HttpMethod,
+	url: string,
+	body: unknown,
+): Promise<HttpResponse> {
 	const parsed = new URL(url, "http://localhost");
 	const query = Object.fromEntries(parsed.searchParams);
 	for (const route of routes) {
-		if (route.method !== "GET") {
+		if (route.method !== method) {
 			continue;
 		}
 		const params = matchPattern(route.pattern, parsed.pathname);
 		if (params !== undefined) {
-			return route.handler({ params, query }, service);
+			return route.handler({ params, query, body }, service);
 		}
 	}
 	return Promise.resolve(fail(404, `no route matches ${parsed.pathname}`));

@@ -1,6 +1,6 @@
-import { routes } from "../routes";
-import { type ArchiveService, startService } from "../service";
-import { dispatch, type HttpResponse } from "./router";
+import { routes } from "./routes";
+import { type ArchiveService, startService } from "./service";
+import { dispatch, type HttpResponse } from "./framework/router";
 
 /**
  * NOTE: You will not need to modify this file.

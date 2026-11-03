@@ -19,7 +19,7 @@ export type ArchiveService = {
  * @param root 档案的根目录。
  * @returns 一个 ArchiveService，其 files 已按日期排序。
  */
-export async function createArchiveService(root: string): Promise<ArchiveService> {
+export async function startService(root: string): Promise<ArchiveService> {
 	const files = await listReadingFiles(root);
 	// 年、月、日都是补零的数字，所以按文本排序就是日期顺序。
 	// 先复制再排序，避免修改原数组。

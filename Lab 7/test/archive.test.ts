@@ -1,6 +1,6 @@
 import { checkExpect, describe, test } from "@ubccpsc/210-toolkit/testing";
-import { readDay } from "./archive";
-import { get } from "./testClient";
+import { readDay } from "../archive";
+import { get } from "../testClient";
 
 // These tests are written for you. Read them as the specification: each one
 // names a request and the exact response it expects. They fail with a 501
@@ -72,16 +72,16 @@ describe("TASK 4: GET /archive/average", () => {
 // written. The expected averages are exact fractions of the shipped files:
 // December pools 31 over 22 readings, January 125 over 46, February 120 over 24.
 
-// describe("STRETCH: GET /archive/months", () => {
-// 	test(
-// 		"summarises each month of the archive, in date order",
-// 		checkExpect(async () => await get("/archive/months"), {
-// 			status: 200,
-// 			body: [
-// 				{ month: "2024/12", days: 1, average: 31 / 22, coldest: "2024/12/31" },
-// 				{ month: "2025/01", days: 2, average: 125 / 46, coldest: "2025/01/01" },
-// 				{ month: "2025/02", days: 1, average: 5, coldest: "2025/02/14" },
-// 			],
-// 		}),
-// 	);
-// });
+describe("STRETCH: GET /archive/months", () => {
+	test(
+		"summarises each month of the archive, in date order",
+		checkExpect(async () => await get("/archive/months"), {
+			status: 200,
+			body: [
+				{ month: "2024/12", days: 1, average: 31 / 22, coldest: "2024/12/31" },
+				{ month: "2025/01", days: 2, average: 125 / 46, coldest: "2025/01/01" },
+				{ month: "2025/02", days: 1, average: 5, coldest: "2025/02/14" },
+			],
+		}),
+	);
+});
