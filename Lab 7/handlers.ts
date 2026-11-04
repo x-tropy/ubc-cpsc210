@@ -7,7 +7,7 @@ export function mean(values: number[]): number {
     return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
-//----- getAverage (given) ------//
+//----- getAverage (示例代码) ------//
 
 export async function getAverage(_request: HttpRequest, service: ArchiveService): Promise<HttpResponse> {
     const days = await Promise.all(service.files.map((file) => readDay(file)));
@@ -19,6 +19,8 @@ export async function getAverage(_request: HttpRequest, service: ArchiveService)
 export async function getDay(request: HttpRequest, service: ArchiveService): Promise<HttpResponse> {
     const { year, month, day } = request.params;
     const path = dayPath(service, year, month, day);
+
+    // service.files 是启动服务时扫描出来的所有文件路径
     if (!service.files.includes(path)) {
         return fail(404, `No recording for ${year}/${month}/${day}`);
     }
@@ -36,9 +38,9 @@ export async function listDaysBelow(request: HttpRequest, service: ArchiveServic
     const labels: string[] = [];
     for (let i = 0; i < service.files.length; i++) {
         const file = service.files[i];
-        const temps = days[i];
+        const temps = days[i]; // 某一天的所有读数
         if (file !== undefined && temps !== undefined && mean(temps) < below) {
-            labels.push(dayLabel(service, file));
+            labels.push(dayLabel(service, file)); // dayLabel 把 data/2025/01/01.txt 变成 2025/01/01
         }
     }
 

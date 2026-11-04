@@ -61,5 +61,5 @@ export async function listReadingFiles(root: string): Promise<string[]> {
  */
 export async function readDay(path: string): Promise<number[]> {
 	const text = await readFile(path, "utf8");
-	return text.split("\n").filter((line) => line !== "").map((line) => Number(line));
+	return text.split("\n").filter((line) => line !== "").map((line) => Number(line)); // 空行会先被过滤掉，然后进行格式转换
 }
